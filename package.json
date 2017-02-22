@@ -1,0 +1,26 @@
+{
+  "name": "note-and-tweet",
+  "version": "0.0.1",
+  "description": "",
+  "main": "noteandtweet.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Digital-Contraptions-Imaginarium/note-and-tweet.git"
+  },
+  "author": "Gianfranco Cecconi <giacecco@dico.im>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Digital-Contraptions-Imaginarium/note-and-tweet/issues"
+  },
+  "homepage": "https://github.com/Digital-Contraptions-Imaginarium/note-and-tweet#readme",
+  "dependencies": {
+    "async": "^2.1.5",
+    "fs-extra": "^2.0.0",
+    "twitter": "^1.7.0",
+    "underscore": "^1.8.3",
+    "yargs": "^6.6.0"
+  }
+}
