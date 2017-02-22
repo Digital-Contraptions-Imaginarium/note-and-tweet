@@ -36,7 +36,8 @@ let checkChanges = () => {
                     line = line.replace(completed_tweets_regexp, "").trim();
                     line = HASHTAGS.reduce((memo, h) => memo += (" #" + h), line);
                     return memo.concat(line);
-                }, [ ]),
+                }, [ ])
+                .filter(line => line.length <= 140),
             newTweets = _.difference(tweetCandidates, previousTweets);
         if (newTweets.length === 0) return setTimeout(checkChanges, CHECK_INTERVAL);
         console.error(new Date().toISOString() + ",tweeting: " + newTweets[0]);

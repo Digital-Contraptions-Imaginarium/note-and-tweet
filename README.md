@@ -25,6 +25,8 @@ Every 30 seconds, the script will check for changes in the file (remember to sav
 Mario makes an incredible jump and collects 10 coins in one move! #supermario
 ```
 
+If the marked line are longer than 140 characters, they will be ignored. Note that you won't get a warning for that (for the time being).
+
 If you re-start the script, the tweets that were already posted will not be posted again.
 
 You can change the prefix by using the ```--prefix``` or ```-p``` arguments. ```-i``` is an alias to ```--interval```, and ```-h``` to ```--hashtag```. The default interval is 60 seconds. If more than one tweet is ready between checks, only the top one will be tweeted, and the others postponed to the next check (do you really need more often than every minute?).
