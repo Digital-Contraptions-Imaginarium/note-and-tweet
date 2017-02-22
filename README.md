@@ -21,10 +21,10 @@ x Mario makes an incredible jump and collects 10 coins in one move!
 
 Every 30 seconds, the script will check for changes in the file (remember to save) and if it finds a new line prefixed by an "x" and one or more spaces, it will tweet it, adding the specified hashtags at the end. In this case:
 
-If you re-start the script, the tweets that were already posted will not be posted again
-
 ```
 Mario makes an incredible jump and collects 10 coins in one move! #supermario
 ```
+
+If you re-start the script, the tweets that were already posted will not be posted again.
 
 You can change the prefix by using the ```--prefix``` or ```-p``` arguments. ```-i``` is an alias to ```--interval```, and ```-h``` to ```--hashtag```. The default interval is 60 seconds. If more than one tweet is ready between checks, only the top one will be tweeted, and the others postponed to the next check (do you really need more often than every minute?).
