@@ -8,11 +8,12 @@ const
         .argv,
     async = require("async"),
     fs = require("fs-extra"),
+    request = require("request"),
     Twitter = require("twitter"),
     _ = require("underscore");
 
 const CHECK_INTERVAL = parseInt(argv.i) * 1000,
-      COMPLETED_TWEETS_PREFIX = argv.p.trim() + " ",
+      COMPLETED_TWEETS_PREFIX = argv.p.trim(),
       HASHTAGS = [ ].concat(argv.h).map(h => h.replace(/^#/i, ""));
 
 const twitter = new Twitter({
@@ -23,11 +24,28 @@ const twitter = new Twitter({
 });
 
 let previousTweets = [ ],
-    completed_tweets_regexp = new RegExp("^" + COMPLETED_TWEETS_PREFIX, "i");
+    completed_tweets_regexp = new RegExp("^" + COMPLETED_TWEETS_PREFIX + " \\w+", "i");
+
+let readSource = (uri, callback) => {
+    if (uri.match(/^https?:\/\//i)) {
+        let resourceUri = uri.match(/\/d\/([A-Za-z0-9\-]{44})\//);
+        request.get({
+                "url": "https://docs.google.com/document/d/" + resourceUri[1] + "/export?format=txt"
+            }, (err, response, body) => {
+                if (err) { console.error(err); return process.exit(1); }
+                callback(null, body);
+            });
+    } else {
+        fs.readFile(uri, { "encoding": "utf8" }, (err, contents) => {
+            if (err) { console.error(err); return process.exit(1); }
+            processSource(contents);
+        });
+    }
+}
 
 let checkChanges = () => {
     console.error(new Date().toISOString() + ",checking for new content...");
-    fs.readFile(argv._[0], { "encoding": "utf8" }, (err, contents) => {
+    readSource(argv._[0], (err, contents) => {
         if (err) { console.error(err); return process.exit(1); }
         let tweetCandidates = contents
                 .split("\n")

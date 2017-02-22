@@ -19,7 +19,13 @@ x Mario makes an incredible jump and collects 10 coins in one move!
 - This is f-ing fantastic! :-)
 ```
 
-Every 30 seconds, the script will check for changes in the file (remember to save) and if it finds a new line prefixed by an "x" and one or more spaces, it will tweet it, adding the specified hashtags at the end. In this case:
+But the amazement is not over. Instead of a text file, you can use a Google Docs document, e.g.
+
+```
+node nodeandtweet.js https://docs.google.com/document/d/1ptnjzbJz1VPqvlrzvpGgBI-7xrM58N2eZLVBX62mWrw/edit --interval 30 --hashtag supermario
+```
+
+Every 30 seconds, the script will check for changes in the file (remember to save) and if it finds a new line prefixed by an "x" (lower case) and one or more spaces, it will tweet it, adding the specified hashtags at the end. In this case:
 
 ```
 Mario makes an incredible jump and collects 10 coins in one move! #supermario
