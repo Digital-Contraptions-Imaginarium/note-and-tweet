@@ -8,19 +8,15 @@ const
         .default('regexp', "^x ")
         .argv,
     async = require("async"),
+    BitlyAPI = require("node-bitlyapi"),
     fs = require("fs-extra"),
     request = require("request"),
     Twitter = require("twitter"),
     _ = require("underscore");
 
-
 const CHECK_INTERVAL = parseInt(argv.i) * 1000,
       TWEET_MARKING_REGEXP = (argv.regexp && !argv.prefix) ? new RegExp(argv.regexp) : new RegExp("^" + argv.prefix.trim() + " "),
       HASHTAGS = [ ].concat(argv.h).map(h => h.replace(/^#/i, ""));
-
-//console.log(TWEET_MARKING_REGEXP);
-//console.log("And this is the new one DT".match(TWEET_MARKING_REGEXP));
-//process.exit(1);
 
 const twitter = new Twitter({
     "consumer_key": process.env.TWITTER2RSS_CONSUMER_KEY,
@@ -28,6 +24,15 @@ const twitter = new Twitter({
     "access_token_key": process.env.TWITTER2RSS_ACCESS_TOKEN_KEY,
     "access_token_secret": process.env.TWITTER2RSS_ACCESS_TOKEN_SECRET
 });
+
+let Bitly = null;
+if (process.env.BITLY_CLIENT_ID && process.env.BITLY_CLIENT_SECRET) {
+    Bitly = new BitlyAPI({
+        client_id: process.env.BITLY_CLIENT_ID,
+        client_secret: process.env.BITLY_CLIENT_SECRET
+    });
+    Bitly.setAccessToken(process.env.BITLY_ACCESS_TOKEN);
+}
 
 let previousTweets = [ ];
 
@@ -48,6 +53,15 @@ let readSource = (uri, callback) => {
     }
 }
 
+let shortenUrl = (url, customDomain, callback) => {
+    if (!callback) { callback = customDomain; customDomain = null; }
+    Bitly.shorten({ longUrl: url }, (err, results) => {
+        if (err) { console.error(err); return process.exit(1); }
+        results = JSON.parse(results);
+        callback(err, customDomain ? customDomain.replace(/\/$/, "") + "/" + results.data.hash : results.data.url);
+    });
+}
+
 let checkChanges = () => {
     console.error(new Date().toISOString() + ",checking for new content...");
     readSource(argv._[0], (err, contents) => {
@@ -64,6 +78,9 @@ let checkChanges = () => {
                 .filter(line => line.length <= 140),
             newTweets = _.difference(tweetCandidates, previousTweets);
         if (newTweets.length === 0) return setTimeout(checkChanges, CHECK_INTERVAL);
+
+        // TODO: replace URLs with short URLs
+
         console.error(new Date().toISOString() + ",tweeting: " + newTweets[0]);
         twitter.post('statuses/update', { status: newTweets[0] }, (err, tweet, response) => {
             if (err) { console.error(err); return process.exit(1); }

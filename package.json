@@ -19,6 +19,9 @@
   "dependencies": {
     "async": "^2.1.5",
     "fs-extra": "^2.0.0",
+    "install": "^0.8.7",
+    "node-bitlyapi": "^0.4.0",
+    "npm": "^4.2.0",
     "request": "^2.79.0",
     "twitter": "^1.7.0",
     "underscore": "^1.8.3",
