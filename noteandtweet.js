@@ -53,13 +53,29 @@ let readSource = (uri, callback) => {
     }
 }
 
-let shortenUrl = (url, customDomain, callback) => {
+let shortenUrl_non_memoized = (url, customDomain, callback) => {
     if (!callback) { callback = customDomain; customDomain = null; }
+    if (!Bitly) return callback(null, url);
     Bitly.shorten({ longUrl: url }, (err, results) => {
         if (err) { console.error(err); return process.exit(1); }
         results = JSON.parse(results);
         callback(err, customDomain ? customDomain.replace(/\/$/, "") + "/" + results.data.hash : results.data.url);
     });
+}
+
+let shortenUrl = async.memoize(shortenUrl_non_memoized);
+
+let shortenAllUrls = (text, bitlyDomain, callback) => {
+    if (!callback) { callback = bitlyDomain; bitlyDomain = null; }
+    // from http://stackoverflow.com/a/8234912/1218376
+    const URL_REGEXP = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/g;
+    if (!text.match(URL_REGEXP)) return callback(null, text);
+    async.eachSeries(text.match(URL_REGEXP).filter(u => !bitlyDomain || (bitlyDomain && !u.match(new RegExp("^" + bitlyDomain)))), (urlToReplace, callback) => {
+        shortenUrl(urlToReplace, bitlyDomain, (err, shortenedUrl) => {
+            text = text.replace(urlToReplace, shortenedUrl);
+            callback(null);
+        });
+    }, err => { callback(err, text); });
 }
 
 let checkChanges = () => {
@@ -74,19 +90,21 @@ let checkChanges = () => {
                     line = line.replace(TWEET_MARKING_REGEXP, "").trim();
                     line = HASHTAGS.reduce((memo, h) => memo += (" #" + h), line);
                     return memo.concat(line);
-                }, [ ])
-                .filter(line => line.length <= 140),
-            newTweets = _.difference(tweetCandidates, previousTweets);
-        if (newTweets.length === 0) return setTimeout(checkChanges, CHECK_INTERVAL);
-
-        // TODO: replace URLs with short URLs
-
-        console.error(new Date().toISOString() + ",tweeting: " + newTweets[0]);
-        twitter.post('statuses/update', { status: newTweets[0] }, (err, tweet, response) => {
-            if (err) { console.error(err); return process.exit(1); }
-            console.error(new Date().toISOString() + ",done.");
-            previousTweets.push(newTweets[0]);
-            setTimeout(checkChanges, CHECK_INTERVAL);
+                }, [ ]);
+        async.map(tweetCandidates, (tweetCandidate, callback) => {
+                shortenAllUrls(tweetCandidate, argv.bitlyprefix, callback);
+            }, (err, results) => {
+            tweetCandidates = results
+                .filter(line => line.length <= 140);
+            let newTweets = _.difference(tweetCandidates, previousTweets);
+            if (newTweets.length === 0) return setTimeout(checkChanges, CHECK_INTERVAL);
+            console.error(new Date().toISOString() + ",tweeting: " + newTweets[0]);
+            twitter.post('statuses/update', { status: newTweets[0] }, (err, tweet, response) => {
+                if (err) { console.error(err); return process.exit(1); }
+                console.error(new Date().toISOString() + ",done.");
+                previousTweets.push(newTweets[0]);
+                setTimeout(checkChanges, CHECK_INTERVAL);
+            });
         });
     });
 }

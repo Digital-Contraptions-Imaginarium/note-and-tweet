@@ -44,3 +44,5 @@ If, instead of a prefix, you prefer using a regular expression, you can do it wi
 ```
 node nodeandtweet.js notes.txt --hashtag supermario -r ' \(DICOIM\)$'
 ```
+
+If you have a Bit.ly account and the following three environment variables are defined: ```BITLY_CLIENT_ID```, ```BITLY_CLIENT_SECRET``` and ```BITLY_ACCESS_TOKEN```, then any URL found in the tweets will be shortened using it. The ```--bitlyprefix``` argument allows you to override the domain returned by Bit.ly with any domain you specify, e.g. from http://bit.ly/2kLlPGO to https://dico.im/2kLlPGO .
