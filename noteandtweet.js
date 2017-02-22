@@ -3,8 +3,9 @@ const
         .alias('h', 'hashtag')
         .alias('i', 'interval')
         .alias('p', 'prefix')
-        .default('i', 60)
-        .default('p', "x")
+        .alias('r', 'regexp')
+        .default('interval', 60)
+        .default('regexp', "^x ")
         .argv,
     async = require("async"),
     fs = require("fs-extra"),
@@ -12,9 +13,14 @@ const
     Twitter = require("twitter"),
     _ = require("underscore");
 
+
 const CHECK_INTERVAL = parseInt(argv.i) * 1000,
-      COMPLETED_TWEETS_PREFIX = argv.p.trim(),
+      TWEET_MARKING_REGEXP = (argv.regexp && !argv.prefix) ? new RegExp(argv.regexp) : new RegExp("^" + argv.prefix.trim() + " "),
       HASHTAGS = [ ].concat(argv.h).map(h => h.replace(/^#/i, ""));
+
+//console.log(TWEET_MARKING_REGEXP);
+//console.log("And this is the new one DT".match(TWEET_MARKING_REGEXP));
+//process.exit(1);
 
 const twitter = new Twitter({
     "consumer_key": process.env.TWITTER2RSS_CONSUMER_KEY,
@@ -23,8 +29,7 @@ const twitter = new Twitter({
     "access_token_secret": process.env.TWITTER2RSS_ACCESS_TOKEN_SECRET
 });
 
-let previousTweets = [ ],
-    completed_tweets_regexp = new RegExp("^" + COMPLETED_TWEETS_PREFIX + " \\w+", "i");
+let previousTweets = [ ];
 
 let readSource = (uri, callback) => {
     if (uri.match(/^https?:\/\//i)) {
@@ -49,9 +54,10 @@ let checkChanges = () => {
         if (err) { console.error(err); return process.exit(1); }
         let tweetCandidates = contents
                 .split("\n")
+                .map(line => line.trim())
                 .reduce((memo, line) => {
-                    if (!line.match(completed_tweets_regexp)) return memo;
-                    line = line.replace(completed_tweets_regexp, "").trim();
+                    if (!line.match(TWEET_MARKING_REGEXP)) return memo;
+                    line = line.replace(TWEET_MARKING_REGEXP, "").trim();
                     line = HASHTAGS.reduce((memo, h) => memo += (" #" + h), line);
                     return memo.concat(line);
                 }, [ ])
@@ -61,6 +67,7 @@ let checkChanges = () => {
         console.error(new Date().toISOString() + ",tweeting: " + newTweets[0]);
         twitter.post('statuses/update', { status: newTweets[0] }, (err, tweet, response) => {
             if (err) { console.error(err); return process.exit(1); }
+            console.error(new Date().toISOString() + ",done.");
             previousTweets.push(newTweets[0]);
             setTimeout(checkChanges, CHECK_INTERVAL);
         });
@@ -79,6 +86,7 @@ twitter.get(
         previousTweets = results
             .map(r => r.text)
             .filter(t => !t.match(/^rt /i) && !t.match(/^@/));
+        console.error(new Date().toISOString() + ",done.");
         // start monitoring for changes
         checkChanges();
 });
