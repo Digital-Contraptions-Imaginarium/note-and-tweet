@@ -19,6 +19,12 @@ x Mario makes an incredible jump and collects 10 coins in one move!
 - This is f-ing fantastic! :-)
 ```
 
+Every 30 seconds, the script will check for changes in the file (remember to save) and if it finds a new line prefixed by an "x" (lower case) and one or more spaces, it will tweet it, adding the specified hashtags at the end. In this case:
+
+```
+Mario makes an incredible jump and collects 10 coins in one move! #supermario
+```
+
 But the amazement is not over. Instead of a text file, you can use a Google Docs document, e.g.
 
 ```
@@ -26,12 +32,6 @@ node nodeandtweet.js https://docs.google.com/document/d/1ptnjzbJz1VPqvlrzvpGgBI-
 ```
 
 Note that the Google Docs document must be accessible to anyone at least for reading.
-
-Every 30 seconds, the script will check for changes in the file (remember to save) and if it finds a new line prefixed by an "x" (lower case) and one or more spaces, it will tweet it, adding the specified hashtags at the end. In this case:
-
-```
-Mario makes an incredible jump and collects 10 coins in one move! #supermario
-```
 
 If the marked line are longer than 140 characters, they will be ignored. Note that you won't get a warning for that (for the time being).
 
