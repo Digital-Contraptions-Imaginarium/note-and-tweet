@@ -33,16 +33,18 @@ node nodeandtweet.js https://docs.google.com/document/d/1ptnjzbJz1VPqvlrzvpGgBI-
 
 Note that the Google Docs document must be accessible to anyone at least for reading.
 
-If the marked line are longer than 140 characters, they will be ignored. Note that you won't get a warning for that (for the time being).
+If the marked lines are longer than 140 characters, they will be ignored. Note that you won't get a warning for that (for the time being).
 
-If you re-start the script, the tweets that were already posted will not be posted again.
+If you re-start the script, the tweets that were already posted will not be posted again unless - in the meantime - you've manually deleted from Twitter.
 
-You can change the prefix by using the ```--prefix``` or ```-p``` arguments. ```-i``` is an alias to ```--interval```, and ```-h``` to ```--hashtag```. You can specify as many hashtags as you like with multiple ```-h```. The default interval is 60 seconds. If more than one tweet is ready between checks, only the top one will be tweeted, and the others postponed to the next check (do you really need more often than every minute?).
+You can change the prefix by using the ```--prefix``` or ```-p``` arguments. ```-i``` is an alias to ```--interval```, and ```-h``` to ```--hashtag```. You can specify as many hashtags as you like with multiple ```-h```. The default interval is 60 seconds. If more than one tweet is ready between checks, only the top one will be tweeted, and the others postponed to the next check (do you really need to tweet more often than once a minute?).
 
 If, instead of a prefix, you prefer using a regular expression, you can do it with the ```--regexp``` or ```-r``` argument, e.g. you can specify the marker for lines to be sent as tweets as a " (DICOIM)" postfix, as in the example below. Note how the brackets are escaped, because they're special characters in regexp.
 
 ```
 node nodeandtweet.js notes.txt --hashtag supermario -r ' \(DICOIM\)$'
 ```
+
+For the script to use the Twitter APIs, you need to create an app associated to your account. I'm not going to explain to you how to do that, but then you need to save the credentials in the environment variables ```NOTEANDTWEET_CONSUMER_KEY```, ```NOTEANDTWEET_CONSUMER_SECRET```, ```NOTEANDTWEET_ACCESS_TOKEN_KEY``` and ```NOTEANDTWEET_ACCESS_TOKEN_SECRET```.
 
 If you have a Bit.ly account and the following three environment variables are defined: ```BITLY_CLIENT_ID```, ```BITLY_CLIENT_SECRET``` and ```BITLY_ACCESS_TOKEN```, then any URL found in the tweets will be shortened using it. The ```--bitlyprefix``` argument allows you to override the domain returned by Bit.ly with any domain you specify, e.g. from http://bit.ly/2kLlPGO to https://dico.im/2kLlPGO .

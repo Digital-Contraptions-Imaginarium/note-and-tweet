@@ -19,10 +19,10 @@ const CHECK_INTERVAL = parseInt(argv.i) * 1000,
       HASHTAGS = [ ].concat(argv.h).map(h => h.replace(/^#/i, ""));
 
 const twitter = new Twitter({
-    "consumer_key": process.env.TWITTER2RSS_CONSUMER_KEY,
-    "consumer_secret": process.env.TWITTER2RSS_CONSUMER_SECRET,
-    "access_token_key": process.env.TWITTER2RSS_ACCESS_TOKEN_KEY,
-    "access_token_secret": process.env.TWITTER2RSS_ACCESS_TOKEN_SECRET
+    "consumer_key": process.env.NOTEANDTWEET_CONSUMER_KEY,
+    "consumer_secret": process.env.NOTEANDTWEET_CONSUMER_SECRET,
+    "access_token_key": process.env.NOTEANDTWEET_ACCESS_TOKEN_KEY,
+    "access_token_secret": process.env.NOTEANDTWEET_ACCESS_TOKEN_SECRET
 });
 
 let Bitly = null;
@@ -69,8 +69,8 @@ let shortenAllUrls = (text, bitlyDomain, callback) => {
     if (!callback) { callback = bitlyDomain; bitlyDomain = null; }
     // from http://stackoverflow.com/a/8234912/1218376
     const URL_REGEXP = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/g;
-    if (!text.match(URL_REGEXP)) return callback(null, text);
-    async.eachSeries(text.match(URL_REGEXP).filter(u => !bitlyDomain || (bitlyDomain && !u.match(new RegExp("^" + bitlyDomain)))), (urlToReplace, callback) => {
+    let matches = text.match(URL_REGEXP);
+    async.eachSeries(!matches ? [ ] : matches.filter(u => !bitlyDomain || (bitlyDomain && !u.match(new RegExp("^" + bitlyDomain)))), (urlToReplace, callback) => {
         shortenUrl(urlToReplace, bitlyDomain, (err, shortenedUrl) => {
             text = text.replace(urlToReplace, shortenedUrl);
             callback(null);
