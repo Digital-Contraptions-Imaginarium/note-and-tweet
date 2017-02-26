@@ -1,9 +1,12 @@
+// evaluate move to https://github.com/google/google-api-nodejs-client
+
 const
     argv = require("yargs")
         .alias('h', 'hashtag')
         .alias('i', 'interval')
         .alias('p', 'prefix')
         .alias('r', 'regexp')
+        .alias('u', 'url')
         .default('interval', 60)
         .default('regexp', "^x ")
         .argv,
@@ -16,7 +19,8 @@ const
 
 const CHECK_INTERVAL = parseInt(argv.i) * 1000,
       TWEET_MARKING_REGEXP = (argv.regexp && !argv.prefix) ? new RegExp(argv.regexp) : new RegExp("^" + argv.prefix.trim() + " "),
-      HASHTAGS = [ ].concat(argv.h).map(h => h.replace(/^#/i, ""));
+      HASHTAGS = [ ].concat(!argv.h ? [ ] : argv.h).map(h => h.replace(/^#/i, "")),
+      URLS = [ argv._[0] ].concat(!argv.u ? [ ] : argv.u);
 
 const twitter = new Twitter({
     "consumer_key": process.env.NOTEANDTWEET_CONSUMER_KEY,
@@ -38,8 +42,9 @@ let previousTweets = [ ];
 
 let readSource = (uri, callback) => {
     if (uri.match(/^https?:\/\//i)) {
-        let resourceUri = uri.match(/\/d\/([A-Za-z0-9\-]{44})\//);
+        let resourceUri = uri.match(/\/d\/([A-Za-z0-9\-_]+)\//);
         request.get({
+                "followAllRedirects": true,
                 "url": "https://docs.google.com/document/d/" + resourceUri[1] + "/export?format=txt"
             }, (err, response, body) => {
                 if (err) { console.error(err); return process.exit(1); }
@@ -85,9 +90,12 @@ let checkChanges = () => {
         let tweetCandidates = contents
                 .split("\n")
                 .map(line => line.trim())
+                // remove any characters at the beginning of the line that are not letters or digits
+                .map(line => line.replace(/^[^A-Za-z0-9]+/, ""))
                 .reduce((memo, line) => {
                     if (!line.match(TWEET_MARKING_REGEXP)) return memo;
                     line = line.replace(TWEET_MARKING_REGEXP, "").trim();
+                    line = URLS.reduce((memo, u) => memo += (" " + u), line);
                     line = HASHTAGS.reduce((memo, h) => memo += (" #" + h), line);
                     return memo.concat(line);
                 }, [ ]);
@@ -108,6 +116,9 @@ let checkChanges = () => {
         });
     });
 }
+
+//console.error(TWEET_MARKING_REGEXP);
+//process.exit(1);
 
 // read the existing tweets
 console.error(new Date().toISOString() + ",reading any pre-existing tweets...");
